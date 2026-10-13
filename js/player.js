@@ -3,22 +3,15 @@
   const audio = new Audio();
   audio.preload = 'auto';
 
-  // Playlist names are shown in the selector. The original tracks stay in Songs.
+  // The player contains only the original six songs.
   const tracks = [
-    { name: "Katyusha", url: "songs/01-katyusha.mp3", playlist: "Songs" },
-    { name: "On the 22nd of June", url: "songs/02-on-the-22nd-of-june.mp3", playlist: "Songs" },
-    { name: "Sacred war", url: "songs/03-sacred-war.mp3", playlist: "Songs" },
-    { name: "Smuglianka", url: "songs/04-smuglianka.mp3", playlist: "Songs" },
-    { name: "Farewell of Slavianka", url: "songs/05-farewell-of-slavianka.mp3", playlist: "Songs" },
-    { name: "Kalinka", url: "songs/06-kalinka.mp3", playlist: "Songs" },
-    {
-      name: "Farewell of Slavianka",
-      url: "songs/instrumental/Farewell of Slavianka (Прощание славянки).mp3",
-      playlist: "Instrumental - electronic instruments"
-    }
+    { name: "Katyusha", url: "songs/01-katyusha.mp3" },
+    { name: "On the 22nd of June", url: "songs/02-on-the-22nd-of-june.mp3" },
+    { name: "Sacred war", url: "songs/03-sacred-war.mp3" },
+    { name: "Smuglianka", url: "songs/04-smuglianka.mp3" },
+    { name: "Farewell of Slavianka", url: "songs/05-farewell-of-slavianka.mp3" },
+    { name: "Kalinka", url: "songs/06-kalinka.mp3" }
   ];
-  const playlistNames = ["Songs", "Instrumental - electronic instruments"];
-  let selectedPlaylist = "Songs";
   let notice = "";
   let watchdog = null;
   let current = -1;
@@ -27,7 +20,7 @@
   let shuffleOn = false;
   let loopMode = "off";
 
-  const activeIndices = () => tracks.map((t, i) => t.playlist === selectedPlaylist ? i : -1).filter(i => i >= 0);
+  const activeIndices = () => tracks.map((_, i) => i);
   const fmt = s => {
     if (!isFinite(s) || s < 0) s = 0;
     s = Math.floor(s);
@@ -40,7 +33,7 @@
       const j = Math.floor(Math.random() * (i + 1));
       [rest[i], rest[j]] = [rest[j], rest[i]];
     }
-    return first >= 0 && tracks[first]?.playlist === selectedPlaylist ? [first, ...rest] : rest;
+    return first >= 0 && first < tracks.length ? [first, ...rest] : rest;
   }
   function buildOrder(first) {
     order = shuffleOn ? shuffled(first) : activeIndices();
@@ -111,23 +104,9 @@
     if (audio.paused) startPlayback();
     else audio.pause();
   }
-  function changePlaylist(name) {
-    selectedPlaylist = name;
-    if (current >= 0 && tracks[current].playlist !== selectedPlaylist) {
-      audio.pause();
-      audio.removeAttribute("src");
-      audio.load();
-      current = -1;
-      pos = -1;
-    }
-    buildOrder(-1);
-    notice = "";
-    render();
-  }
-
   audio.addEventListener("error", () => {
     const code = audio.error ? audio.error.code : 0;
-    notice = code === 4 ? "This browser cannot play this file." : code === 3 ? "This song could not be decoded." : "The song could not be loaded. Check that the MP3 is uploaded to its playlist folder.";
+    notice = code === 4 ? "This browser cannot play this file." : code === 3 ? "This song could not be decoded." : "The song could not be loaded. Check that the MP3 exists in the songs folder.";
     render();
   });
   audio.addEventListener("timeupdate", () => {
@@ -155,7 +134,6 @@
     $("loop").textContent = "Loop: " + loopMode;
     $("loop").setAttribute("aria-pressed", loopMode !== "off");
     document.title = playing ? tracks[current].name + " - Music Player" : "Music Player";
-    $("playlistSelect").value = selectedPlaylist;
     const list = $("playlist");
     list.textContent = "";
     activeIndices().forEach((i, n) => {
@@ -174,7 +152,6 @@
     });
   }
 
-  $("playlistSelect").addEventListener("change", e => changePlaylist(e.target.value));
   $("play").addEventListener("click", togglePlay);
   $("next").addEventListener("click", () => step(1, true));
   $("prev").addEventListener("click", () => {
@@ -207,7 +184,7 @@
       e.preventDefault(); togglePlay();
     }
   });
-  window.__player = { get state() { return { tracks: tracks.length, current, order: order.slice(), pos, shuffleOn, loopMode, selectedPlaylist }; }, audio, step, playIndex, changePlaylist };
+  window.__player = { get state() { return { tracks: tracks.length, current, order: order.slice(), pos, shuffleOn, loopMode, }; }, audio, step, playIndex };
   buildOrder(-1);
   render();
 })();
