@@ -13,7 +13,7 @@
     { name: "Kalinka", url: "songs/06-kalinka.mp3", playlist: "Songs" },
     {
       name: "Farewell of Slavianka",
-      url: "songs/instrumental/Farewell of Slavianka.mp3",
+      url: "songs/instrumental/Farewell of Slavianka (Прощание славянки).mp3",
       playlist: "Instrumental - electronic instruments"
     }
   ];
